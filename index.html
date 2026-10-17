@@ -4,110 +4,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hidrotiltai PDF Catalogue Viewer</title>
+<title>Parking Lifts Product Catalogue | Hidrotiltai</title>
 
 <style>
+:root {
+  --ht-bg: rgb(36, 40, 52);
+  --ht-blue: #2a7de1;
+  --ht-light-blue: #4fb3f6;
+  --ht-white: #ffffff;
+}
+
 * {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   width: 100%;
   min-height: 100%;
-  background: rgb(36, 40, 52);
-  color: #ffffff;
-  font-family: Arial, sans-serif;
+  background: var(--ht-bg);
+  color: var(--ht-white);
+  font-family: Lato, Arial, sans-serif;
 }
 
 body {
-  padding: 0;
+  overflow-x: hidden;
 }
 
-.pdf-viewer {
+.viewer {
   width: 100%;
   min-height: 100vh;
-  background: rgb(36, 40, 52);
+  background: var(--ht-bg);
 }
 
+/* HEADER */
 .toolbar {
-  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 16px;
-  background: rgb(36, 40, 52);
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 12px 18px;
+  background: var(--ht-bg);
   border-bottom: 1px solid rgba(255,255,255,0.12);
 }
 
 .toolbar-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
 }
 
 .toolbar-actions {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 10px;
 }
 
-.toolbar a,
-.toolbar button {
+.ht-button {
+  display: inline-block;
+  padding: 10px 14px;
   color: #ffffff;
-  background: #242424;
-  border: 1px solid rgba(255,255,255,0.16);
-  border-radius: 4px;
-  padding: 8px 12px;
+  background: linear-gradient(145deg, #1b1b1b, #242424);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 5px;
+  text-decoration: none;
   font-size: 12px;
   font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
+  letter-spacing: 0.4px;
+  transition: background 0.25s ease;
 }
 
-.toolbar a:hover,
-.toolbar button:hover {
-  background: #2a7de1;
+.ht-button:hover {
+  background: var(--ht-blue);
 }
 
+/* PDF VIEWER */
 #pdf-container {
   width: 100%;
-  min-height: calc(100vh - 49px);
-  background: rgb(36, 40, 52);
+  min-height: calc(100vh - 55px);
+  padding: 0;
+  margin: 0;
   overflow: auto;
+  background: var(--ht-bg);
   text-align: center;
 }
 
-#pdf-container canvas {
+/* Each rendered page */
+.pdf-page {
   display: block;
   margin: 0 auto 12px;
+  padding: 0;
   max-width: 100%;
   height: auto;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.22);
+  background: #ffffff;
 }
 
+/* STATUS */
 #status {
-  padding: 28px 16px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 35px 20px;
   color: #ffffff;
   font-size: 14px;
+  line-height: 1.7;
+}
+
+#status a {
+  color: var(--ht-light-blue);
 }
 
 @media (max-width: 600px) {
   .toolbar {
     align-items: flex-start;
     flex-direction: column;
+    padding: 12px;
+  }
+
+  .toolbar-title {
+    font-size: 13px;
   }
 
   .toolbar-actions {
     width: 100%;
+  }
+
+  .ht-button {
+    text-align: center;
+  }
+
+  #pdf-container {
+    min-height: calc(100vh - 100px);
   }
 }
 </style>
 </head>
 
 <body>
-<div class="pdf-viewer">
+<div class="viewer">
 
   <header class="toolbar">
     <div class="toolbar-title">
@@ -116,16 +151,17 @@ body {
 
     <div class="toolbar-actions">
       <a
-        href="https://drive.google.com/file/d/1ZBdsCpvt1fcgDALN-jEE1V_3rC-LE3Vi/preview"
+        class="ht-button"
+        href="./parking-lifts-catalogue.pdf"
         target="_blank"
         rel="noopener noreferrer">
         ORIGINAL VIEW
       </a>
 
       <a
-        href="https://drive.google.com/uc?export=download&id=1ZBdsCpvt1fcgDALN-jEE1V_3rC-LE3Vi"
-        target="_blank"
-        rel="noopener noreferrer">
+        class="ht-button"
+        href="./parking-lifts-catalogue.pdf"
+        download="parking-lifts-catalogue.pdf">
         DOWNLOAD PDF
       </a>
     </div>
@@ -144,18 +180,15 @@ import * as pdfjsLib from
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
-const PDF_URL =
-  "https://drive.google.com/uc?export=download&id=1ZBdsCpvt1fcgDALN-jEE1V_3rC-LE3Vi";
+/* PDF FILE IN THIS GITHUB REPOSITORY */
+const PDF_URL = "./parking-lifts-catalogue.pdf";
 
 const container = document.getElementById("pdf-container");
 const status = document.getElementById("status");
 
 async function loadCatalogue() {
   try {
-    const pdf = await pdfjsLib.getDocument({
-      url: PDF_URL,
-      withCredentials: false
-    }).promise;
+    const pdf = await pdfjsLib.getDocument(PDF_URL).promise;
 
     status.remove();
 
@@ -168,32 +201,46 @@ async function loadCatalogue() {
         container.clientWidth - 24
       );
 
+      /* Fit the entire PDF page to the available width */
       const scale = availableWidth / baseViewport.width;
       const viewport = page.getViewport({ scale });
 
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
 
-      canvas.width = Math.floor(viewport.width);
-      canvas.height = Math.floor(viewport.height);
-      canvas.style.width = viewport.width + "px";
-      canvas.style.height = viewport.height + "px";
+      canvas.className = "pdf-page";
+      canvas.width = Math.floor(viewport.width * pixelRatio);
+      canvas.height = Math.floor(viewport.height * pixelRatio);
+      canvas.style.width = Math.floor(viewport.width) + "px";
+      canvas.style.height = Math.floor(viewport.height) + "px";
 
       container.appendChild(canvas);
 
       await page.render({
         canvasContext: context,
-        viewport: viewport
+        viewport: viewport,
+        transform: pixelRatio !== 1
+          ? [pixelRatio, 0, 0, pixelRatio, 0, 0]
+          : null
       }).promise;
     }
+
   } catch (error) {
-    console.error(error);
-    status.textContent =
-      "The catalogue could not be loaded. Google Drive access or cross-origin restrictions may prevent direct PDF loading.";
+    console.error("PDF loading error:", error);
+
+    status.innerHTML =
+      'The catalogue could not be loaded. ' +
+      'Please check that <strong>parking-lifts-catalogue.pdf</strong> ' +
+      'exists in the repository root and that PDF.js can be loaded. ' +
+      '<br><br><a href="./parking-lifts-catalogue.pdf" target="_blank" ' +
+      'rel="noopener noreferrer">Open the PDF file directly</a>.';
   }
 }
 
 loadCatalogue();
 </script>
 </body>
+
+
 </html>
